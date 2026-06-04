@@ -1,775 +1,529 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小五常識：歷史與天文大戰</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #0f172a; /* 深色背景 */
-            color: #f8fafc;
-            user-select: none; /* 防止白板誤觸反白文字 */
-            overflow: hidden;
-            touch-action: manipulation;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>小四人文科冒險：時空守護戰</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'PingFang HK', 'Microsoft JhengHei', sans-serif; background-color: #1a202c; color: white; touch-action: manipulation; }
+    .screen { display: none; min-height: 100vh; flex-direction: column; }
+    .active-screen { display: flex; }
+    .option-btn { transition: all 0.2s ease; border: 4px solid transparent; }
+    .option-btn.selected { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; transform: scale(1.02); }
+    
+    /* 動畫特效 */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+      75% { transform: translateX(-10px); }
+      100% { transform: translateX(0); }
+    }
+    .shake-animation { animation: shake 0.4s ease-in-out; }
+    
+    @keyframes flash-red {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5); }
+    }
+    .flash-red-animation { animation: flash-red 0.5s ease-in-out; }
+    
+    @keyframes flash-green {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.5) sepia(1) hue-rotate(80deg) saturate(3); }
+    }
+    .flash-green-animation { animation: flash-green 0.5s ease-in-out; }
 
-        /* 按鈕立體效果 */
-        .btn-rpg {
-            transition: all 0.1s;
-            box-shadow: 0 6px 0px rgba(0,0,0,0.5);
-        }
-        .btn-rpg:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0px rgba(0,0,0,0.5);
-        }
-
-        /* 答案選項發光效果 */
-        .option-selected {
-            border-color: #fbbf24 !important;
-            background-color: rgba(251, 191, 36, 0.2) !important;
-            box-shadow: 0 0 20px #fbbf24, inset 0 0 10px #fbbf24 !important;
-            transform: scale(1.02);
-        }
-
-        /* 動畫特效 */
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            50% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-            100% { transform: translateX(0); }
-        }
-        .shake-animation {
-            animation: shake 0.3s ease-in-out;
-        }
-
-        @keyframes attackP1 {
-            0% { transform: translateX(0) scale(1); }
-            50% { transform: translateX(50px) scale(1.1); }
-            100% { transform: translateX(0) scale(1); }
-        }
-        .attack-p1-animation {
-            animation: attackP1 0.3s ease-in-out;
-        }
-
-        @keyframes attackP2 {
-            0% { transform: translateX(0) scale(1); }
-            50% { transform: translateX(-50px) scale(1.1); }
-            100% { transform: translateX(0) scale(1); }
-        }
-        .attack-p2-animation {
-            animation: attackP2 0.3s ease-in-out;
-        }
-
-        @keyframes monsterHurt {
-            0% { filter: brightness(1); transform: scale(1); }
-            50% { filter: brightness(3) drop-shadow(0 0 20px red); transform: scale(0.9); }
-            100% { filter: brightness(1); transform: scale(1); }
-        }
-        .monster-hurt-animation {
-            animation: monsterHurt 0.4s ease-in-out;
-        }
-
-        /* 傷害數字漂浮 */
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
-        }
-        .damage-text {
-            position: absolute;
-            color: #ef4444;
-            font-weight: 900;
-            font-size: 3rem;
-            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-            pointer-events: none;
-            z-index: 50;
-            animation: floatUp 1s forwards;
-        }
-        .heal-text {
-            position: absolute;
-            color: #22c55e;
-            font-weight: 900;
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-            pointer-events: none;
-            z-index: 50;
-            animation: floatUp 1s forwards;
-        }
-
-        /* 隱藏捲軸 */
-        ::-webkit-scrollbar { display: none; }
-        
-        /* Combo 發光特效 */
-        .combo-glow {
-            text-shadow: 0 0 10px #fbbf24, 0 0 20px #f59e0b;
-            color: #fbbf24;
-        }
-
-        /* 血條過渡效果 */
-        .hp-bar {
-            transition: width 0.3s ease-out, background-color 0.3s ease;
-        }
-    </style>
+    ::-webkit-scrollbar { width: 0px; background: transparent; }
+  </style>
 </head>
-<body class="w-screen h-screen flex flex-col items-center justify-center relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
+<body class="bg-gray-900 text-white select-none overflow-hidden h-screen w-screen">
 
-    <div id="top-bar" class="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-50 hidden">
-        <button onclick="toggleMute()" id="mute-btn" class="text-white bg-slate-800 p-3 rounded-full border-2 border-slate-600 hover:bg-slate-700">
-            🔊 音效: 開
-        </button>
-        <div class="text-3xl font-black text-yellow-400 drop-shadow-md">
-            剩餘時間 <span id="timer-display">05:00</span>
+  <!-- 1. 開始與角色選擇畫面 -->
+  <div id="start-screen" class="screen active-screen justify-center items-center bg-[url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2578&auto=format&fit=crop')] bg-cover bg-center bg-blend-overlay bg-gray-900/80 p-4">
+    <div class="bg-gray-800/90 p-8 rounded-2xl shadow-2xl max-w-2xl w-full text-center border-4 border-gray-700">
+      <h1 class="text-4xl md:text-5xl font-bold text-yellow-400 mb-6 drop-shadow-md">人文科時空守護戰</h1>
+      
+      <div class="mb-6 max-w-sm mx-auto">
+        <label class="block text-left mb-2 text-lg text-gray-200">請輸入班別及姓名/學號：</label>
+        <input type="text" id="player-name" placeholder="例如：4A 01 張小明" 
+               class="w-full p-4 rounded-xl bg-gray-700 border-2 border-gray-500 text-white text-xl text-center focus:outline-none focus:border-yellow-400">
+      </div>
+
+      <h2 class="text-2xl mb-4 text-gray-200">選擇你的英雄</h2>
+      <div class="flex justify-center gap-4 md:gap-8 mb-8">
+        <div class="char-select cursor-pointer p-4 border-4 border-transparent rounded-xl hover:bg-gray-700" data-char="knight">
+          <div class="text-6xl mb-2">🤺</div>
+          <div class="text-xl font-bold">騎士</div>
         </div>
-        <button onclick="toggleFullScreen()" class="text-white bg-slate-800 p-3 rounded-full border-2 border-slate-600 hover:bg-slate-700">
-            🔲 全螢幕
-        </button>
+        <div class="char-select cursor-pointer p-4 border-4 border-transparent rounded-xl hover:bg-gray-700" data-char="mage">
+          <div class="text-6xl mb-2">🧙‍♂️</div>
+          <div class="text-xl font-bold">法師</div>
+        </div>
+        <div class="char-select cursor-pointer p-4 border-4 border-transparent rounded-xl hover:bg-gray-700" data-char="princess">
+          <div class="text-6xl mb-2">👸</div>
+          <div class="text-xl font-bold">公主</div>
+        </div>
+      </div>
+
+      <div class="flex justify-center gap-4">
+        <button id="btn-fullscreen" class="p-4 bg-blue-600 rounded-xl text-xl font-bold hover:bg-blue-500 shadow-lg transition-transform active:scale-95">全屏模式</button>
+        <button id="btn-start" class="p-4 px-12 bg-green-600 rounded-xl text-2xl font-bold hover:bg-green-500 shadow-lg transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled>開始冒險</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 遊戲畫面 -->
+  <div id="game-screen" class="screen h-full flex-col">
+    <div class="h-[40%] bg-[url('https://images.unsplash.com/photo-1627856013091-fed6e4e048c5?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-center bg-blend-overlay bg-gray-800/80 flex p-4 border-b-4 border-gray-700 relative shadow-inner">
+      <div class="absolute top-2 left-0 right-0 flex justify-between px-6 z-10">
+        <div class="bg-gray-900/80 px-4 py-2 rounded-lg font-bold text-lg border border-gray-600">分數: <span id="score" class="text-yellow-400 text-2xl">0</span></div>
+        <div class="bg-gray-900/80 px-4 py-2 rounded-lg font-bold text-lg border border-gray-600 text-green-400">連擊: <span id="combo" class="text-2xl">0</span> (滿3回血)</div>
+        <button id="btn-mute" class="bg-gray-900/80 px-4 py-2 rounded-lg text-xl border border-gray-600">🔊</button>
+      </div>
+
+      <div class="w-1/2 flex flex-col justify-end items-center pb-4">
+        <div id="player-sprite" class="text-8xl md:text-9xl mb-4 transition-transform drop-shadow-2xl">🤺</div>
+        <div class="w-3/4 max-w-xs bg-gray-900 rounded-full h-6 border-2 border-gray-400 relative overflow-hidden">
+          <div id="player-hp-bar" class="bg-green-500 h-full transition-all duration-300" style="width: 100%"></div>
+          <span id="player-hp-text" class="absolute inset-0 text-center text-sm font-bold leading-5">100/100</span>
+        </div>
+        <div id="player-name-display" class="mt-2 font-bold text-xl bg-gray-900/60 px-3 py-1 rounded">玩家</div>
+      </div>
+
+      <div class="w-1/2 flex flex-col justify-end items-center pb-4">
+        <div id="monster-sprite" class="text-8xl md:text-9xl mb-4 transition-transform drop-shadow-2xl">🐉</div>
+        <div class="w-3/4 max-w-xs bg-gray-900 rounded-full h-6 border-2 border-gray-400 relative overflow-hidden">
+          <div id="monster-hp-bar" class="bg-red-500 h-full transition-all duration-300" style="width: 100%"></div>
+          <span id="monster-hp-text" class="absolute inset-0 text-center text-sm font-bold leading-5">100/100</span>
+        </div>
+        <div class="mt-2 font-bold text-xl bg-gray-900/60 px-3 py-1 rounded text-red-300">混沌巨龍</div>
+      </div>
     </div>
 
-    <div id="start-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40 backdrop-blur-sm">
-        <h1 class="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 mb-8 drop-shadow-[0_5px_5px_rgba(0,0,0,1)] text-center tracking-wider">
-            常識英雄傳<br><span class="text-4xl text-white">歷史與天文之戰</span>
-        </h1>
-        <div class="bg-slate-800 border-4 border-yellow-600 p-8 rounded-2xl max-w-4xl text-xl mb-8 shadow-2xl">
-            <h2 class="text-3xl text-yellow-400 font-bold mb-4 text-center border-b-2 border-yellow-600 pb-2">📜 遊戲說明</h2>
-            <ul class="list-disc pl-8 space-y-3 text-slate-200">
-                <li>本遊戲適合小五學生，支援 <b>兩位玩家同時對戰</b>（左邊騎士，右邊法師）。</li>
-                <li>題目涵蓋：<b>漢、唐、宋、元、明朝歷史</b> 及 <b>地球、月球、太陽系知識</b>。</li>
-                <li><b>操作方式</b>：先點擊答案（選項會發光），再點擊<b>「確定」</b>提交。可隨時點擊「取消」重選。</li>
-                <li><b>戰鬥規則</b>：答對可攻擊怪獸，答錯會扣除自己的生命值(HP)。</li>
-                <li><b>Combo 系統</b>：連續答對 3 題，可回復 HP 並增加攻擊力！</li>
-                <li>限時 5 分鐘，時間到或一方生命值歸零則遊戲結束。</li>
-            </ul>
-        </div>
-        <button onclick="startGame()" class="btn-rpg bg-gradient-to-b from-green-400 to-green-600 border-4 border-green-800 text-white text-4xl font-bold py-4 px-16 rounded-2xl hover:from-green-300 hover:to-green-500">
-            開始對戰 ⚔️
-        </button>
-    </div>
+    <div class="h-[60%] bg-gray-800 p-4 md:p-6 flex flex-col">
+      <div class="bg-gray-700 p-4 md:p-6 rounded-xl border-2 border-gray-600 mb-4 shadow-lg min-h-[100px] flex items-center justify-center">
+        <h3 id="question-text" class="text-2xl md:text-3xl font-bold text-center leading-relaxed">載入中...</h3>
+      </div>
+      
+      <div id="options-container" class="grid grid-cols-2 gap-4 flex-grow mb-4">
+        <button class="option-btn bg-blue-900 hover:bg-blue-800 text-xl md:text-2xl font-bold rounded-xl shadow-md p-2 flex items-center justify-center break-words"></button>
+        <button class="option-btn bg-blue-900 hover:bg-blue-800 text-xl md:text-2xl font-bold rounded-xl shadow-md p-2 flex items-center justify-center break-words"></button>
+        <button class="option-btn bg-blue-900 hover:bg-blue-800 text-xl md:text-2xl font-bold rounded-xl shadow-md p-2 flex items-center justify-center break-words"></button>
+        <button class="option-btn bg-blue-900 hover:bg-blue-800 text-xl md:text-2xl font-bold rounded-xl shadow-md p-2 flex items-center justify-center break-words"></button>
+      </div>
 
-    <div id="game-screen" class="w-full h-full flex hidden pt-20 pb-4 px-4 gap-4">
+      <div class="flex gap-4 h-16 md:h-20">
+        <button id="btn-cancel" class="w-1/3 bg-gray-600 rounded-xl text-2xl font-bold hover:bg-gray-500 shadow-lg active:scale-95 disabled:opacity-50">取消</button>
+        <button id="btn-confirm" class="w-2/3 bg-yellow-600 rounded-xl text-2xl md:text-3xl font-bold hover:bg-yellow-500 shadow-lg active:scale-95 disabled:opacity-50 text-white border-b-4 border-yellow-800" disabled>確定提交</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 結算畫面 (含排行榜) -->
+  <div id="end-screen" class="screen justify-center items-center bg-gray-900 p-4 overflow-y-auto">
+    <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl max-w-3xl w-full text-center border-4 border-yellow-500 my-8">
+      <h1 id="end-title" class="text-4xl md:text-6xl font-bold mb-2">戰鬥結束</h1>
+      <p id="end-subtitle" class="text-xl text-gray-400 mb-6">成績結算</p>
+      
+      <div class="grid grid-cols-2 gap-4 text-xl md:text-2xl mb-8 bg-gray-900 p-6 rounded-xl border border-gray-700">
+        <div class="text-right text-gray-400 pr-4">玩家名稱：</div><div id="stat-name" class="text-left font-bold text-white pl-4"></div>
+        <div class="text-right text-gray-400 pr-4">總分數：</div><div id="stat-score" class="text-left font-bold text-yellow-400 pl-4"></div>
+        <div class="text-right text-gray-400 pr-4">答對題數：</div><div id="stat-correct" class="text-left font-bold text-green-400 pl-4"></div>
+        <div class="text-right text-gray-400 pr-4">答錯題數：</div><div id="stat-wrong" class="text-left font-bold text-red-400 pl-4"></div>
+        <div class="text-right text-gray-400 pr-4">擊敗怪獸：</div><div id="stat-monsters" class="text-left font-bold text-purple-400 pl-4"></div>
+        <div class="text-right text-gray-400 pr-4">消耗時間：</div><div id="stat-time" class="text-left font-bold text-blue-400 pl-4"></div>
+      </div>
+      
+      <div class="mt-4 bg-gray-900 p-4 rounded-xl border border-gray-700 max-w-xl mx-auto">
+        <h3 class="text-2xl font-bold text-yellow-400 mb-4 border-b border-gray-700 pb-2">🏆 班級龍虎榜 (Top 10)</h3>
+        <div id="leaderboard-list" class="text-left space-y-2 max-h-60 overflow-y-auto pr-2">
+          <p class="text-gray-400 text-center py-4">正在上傳成績並載入排行榜...</p>
+        </div>
+      </div>
+
+      <button id="btn-restart" class="mt-8 p-4 px-12 bg-blue-600 rounded-xl text-2xl font-bold hover:bg-blue-500 shadow-lg active:scale-95">重新開始</button>
+    </div>
+  </div>
+
+  <!-- Firebase 模組化設定與邏輯 (已整合您的 Config) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+    // 使用您提供的 Firebase 配置
+    const firebaseConfig = {
+      apiKey: "AIzaSyBJWPQVmBfoM4_gbD_6HALmIinqY7yImpQ",
+      authDomain: "gen-lang-client-0031507703.firebaseapp.com",
+      projectId: "gen-lang-client-0031507703",
+      storageBucket: "gen-lang-client-0031507703.firebasestorage.app",
+      messagingSenderId: "200633310886",
+      appId: "1:200633310886:web:fa2eda9447e491c1d29e67",
+      measurementId: "G-LNNFZKYCT4"
+    };
+
+    let db;
+    try {
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      db = getFirestore(app);
+      console.log("Firebase 初始化成功");
+    } catch (error) {
+      console.warn("Firebase 初始化錯誤:", error);
+    }
+
+    // 上傳成績函數
+    window.uploadGameScore = async function(name, score, correct, totalTime) {
+      if (!db) return;
+      try {
+        const accuracy = correct / 30; // 30為總題數
+        await addDoc(collection(db, "leaderboard"), {
+          name: name,
+          score: score,
+          correctCount: correct,
+          accuracy: accuracy,
+          timeTaken: totalTime,
+          createdAt: new Date()
+        });
+        window.fetchGameLeaderboard();
+      } catch (e) {
+        console.error("上傳失敗:", e);
+        document.getElementById('leaderboard-list').innerHTML = `<p class="text-red-400 text-center">上傳成績失敗，請檢查資料庫規則設定。</p>`;
+      }
+    };
+
+    // 讀取排行榜函數
+    window.fetchGameLeaderboard = async function() {
+      if (!db) return;
+      const listContainer = document.getElementById('leaderboard-list');
+      try {
+        const q = query(collection(db, "leaderboard"), orderBy("accuracy", "desc"), orderBy("timeTaken", "asc"), limit(10));
+        const querySnapshot = await getDocs(q);
         
-        <!-- ================= 玩家 1 (左側) ================= -->
-        <div id="p1-area" class="w-1/2 flex flex-col bg-slate-800/80 border-4 border-blue-900 rounded-3xl p-4 relative shadow-[0_0_30px_rgba(30,58,138,0.5)]">
-            <!-- 狀態列 -->
-            <div class="flex justify-between items-center mb-2 border-b-2 border-blue-800 pb-2">
-                <div class="text-2xl font-bold text-blue-300">P1 騎士 🛡️</div>
-                <div class="text-xl font-bold">分數: <span id="p1-score" class="text-yellow-400 text-3xl">0</span></div>
-                <div id="p1-combo-display" class="text-xl font-bold text-slate-400">Combo: 0</div>
+        listContainer.innerHTML = "";
+        if(querySnapshot.empty) {
+          listContainer.innerHTML = `<p class="text-gray-400 text-center">暫無紀錄，成為第一個上榜的人吧！</p>`;
+          return;
+        }
+
+        let rank = 1;
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const mins = Math.floor(data.timeTaken / 60);
+          const secs = data.timeTaken % 60;
+          
+          let badge = `${rank}.`;
+          if(rank === 1) badge = "🥇"; else if(rank === 2) badge = "🥈"; else if(rank === 3) badge = "🥉";
+
+          const row = document.createElement('div');
+          row.className = "flex justify-between items-center bg-gray-800 p-3 rounded-lg text-lg mb-2 border border-gray-700";
+          row.innerHTML = `
+            <div class="flex items-center space-x-3">
+              <span class="w-8 font-bold text-center text-xl">${badge}</span>
+              <span class="font-bold text-white">${data.name}</span>
             </div>
+            <div class="text-right">
+              <span class="text-yellow-400 font-bold">${data.correctCount}題</span> 
+              <span class="text-sm text-gray-400 ml-2">(${mins}分${secs}秒)</span>
+            </div>`;
+          listContainer.appendChild(row);
+          rank++;
+        });
+      } catch (e) {
+        console.error("讀取排行榜失敗:", e);
+        listContainer.innerHTML = `<p class="text-red-400 text-center">無法載入排行榜（可能是 Firestore 規則設定不允許）</p>`;
+      }
+    };
+  </script>
 
-            <!-- 戰鬥區 -->
-            <div class="flex-1 flex flex-col justify-center items-center relative py-4">
-                <!-- 怪獸 -->
-                <div class="flex flex-col items-center mb-8">
-                    <div id="p1-monster-sprite" class="text-8xl filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transition-transform">👹</div>
-                    <div class="w-48 h-6 bg-slate-900 border-2 border-slate-700 rounded-full mt-4 overflow-hidden relative">
-                        <div id="p1-monster-hp-bar" class="h-full bg-red-500 hp-bar w-full"></div>
-                        <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">怪獸 HP</div>
-                    </div>
-                </div>
-                <!-- 玩家 -->
-                <div class="flex flex-col items-center">
-                    <div class="w-64 h-8 bg-slate-900 border-2 border-slate-700 rounded-full mb-4 overflow-hidden relative">
-                        <div id="p1-hp-bar" class="h-full bg-green-500 hp-bar w-full"></div>
-                        <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">騎士 HP <span id="p1-hp-text" class="ml-2">100/100</span></div>
-                    </div>
-                    <div id="p1-sprite" class="text-7xl filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transition-transform">🤺</div>
-                </div>
-                <!-- 特效容器 -->
-                <div id="p1-effect-container" class="absolute inset-0 pointer-events-none flex justify-center items-center"></div>
-            </div>
+  <!-- 遊戲主要邏輯 -->
+  <script>
+    const allQuestions = [
+      { q: "1950年代香港哪裡發生大火，促成公共房屋的發展？", options: ["石硤尾", "旺角", "銅鑼灣", "荃灣"], ans: 0 },
+      { q: "香港早期的公共房屋被稱為什麼？", options: ["徙置區", "居屋", "豪宅", "別墅"], ans: 0 },
+      { q: "1970年代香港開始推行什麼教育政策？", options: ["九年免費教育", "十五年免費教育", "大學免費", "無免費教育"], ans: 0 },
+      { q: "香港第一條海底隧道在哪一年通車？", options: ["1972年", "1960年", "1985年", "1997年"], ans: 0 },
+      { q: "香港地下鐵路(地鐵)在哪一年開始通車？", options: ["1979年", "1965年", "1988年", "2000年"], ans: 0 },
+      { q: "以前香港市民主要依靠哪種交通工具過海？", options: ["渡海小輪", "飛機", "高鐵", "直升機"], ans: 0 },
+      { q: "香港國際機場在1998年從哪裡搬遷到了赤鱲角？", options: ["啟德", "沙田", "大埔", "西貢"], ans: 0 },
+      { q: "哪一項基建連接了香港、珠海和澳門？", options: ["港珠澳大橋", "青馬大橋", "汀九橋", "昂船洲大橋"], ans: 0 },
+      { q: "香港以往的製造業主要生產什麼？", options: ["塑膠花和製衣", "汽車和飛機", "電腦晶片", "智能手機"], ans: 0 },
+      { q: "現代香港主要發展哪一種產業？", options: ["金融及服務業", "農業", "重工業", "漁業"], ans: 0 },
+      { q: "過去很多家庭需要共用廚房和廁所，這種住所叫？", options: ["唐樓/板間房", "獨立屋", "居屋", "公屋"], ans: 0 },
+      { q: "為了改善市民居住環境，政府不斷興建什麼？", options: ["公共屋邨", "遊樂場", "超級市場", "停車場"], ans: 0 },
+      { q: "香港特別行政區在哪一年成立？", options: ["1997年", "1984年", "1999年", "2008年"], ans: 0 },
+      { q: "香港的簡稱是什麼？", options: ["香港特區", "廣東省", "首都", "直轄市"], ans: 0 },
+      { q: "「一國兩制」中的「一國」是指什麼？", options: ["中華人民共和國", "英國", "聯合國", "亞洲"], ans: 0 },
+      { q: "香港特別行政區的區旗上有什麼圖案？", options: ["洋紫荊花", "梅花", "櫻花", "玫瑰花"], ans: 0 },
+      { q: "香港特別行政區的最高行政首長是誰？", options: ["行政長官", "財政司司長", "警務處處長", "教育局局長"], ans: 0 },
+      { q: "《基本法》是香港的什麼法律？", options: ["憲制性文件", "交通規則", "校規", "稅法"], ans: 0 },
+      { q: "根據《基本法》，香港實行什麼制度保持不變？", options: ["資本主義制度", "社會主義制度", "共產主義制度", "封建制度"], ans: 0 },
+      { q: "香港回歸祖國是哪一天的節日？", options: ["7月1日", "10月1日", "5月1日", "1月1日"], ans: 0 },
+      { q: "升國旗時，我們應該保持什麼態度？", options: ["莊重肅立", "隨意走動", "大聲聊天", "吃零食"], ans: 0 },
+      { q: "在網上看到未經證實的消息，我們應該怎麼做？", options: ["先核實真假", "立刻轉發", "相信並傳開", "留言附和"], ans: 0 },
+      { q: "設立網上密碼時，哪種組合最安全？", options: ["包含英文字母和數字", "只用出生日期", "只用123456", "只用電話號碼"], ans: 0 },
+      { q: "如果在網上被人欺凌，應該怎樣做？", options: ["告訴老師或家長", "罵回對方", "默默忍受", "刪除帳號逃避"], ans: 0 },
+      { q: "在網上下載別人的文章當作自己的功課，這叫什麼？", options: ["抄襲/侵權", "參考", "借用", "分享"], ans: 0 },
+      { q: "使用平板電腦一段時間後，應該怎樣做？", options: ["休息讓眼睛放鬆", "繼續玩遊戲", "把屏幕調到最亮", "靠近屏幕看"], ans: 0 },
+      { q: "收到陌生人發送的奇怪連結，我們應該？", options: ["不要點擊並刪除", "馬上點擊查看", "轉發給朋友", "回覆對方"], ans: 0 },
+      { q: "在社交平台上公開自己的家庭住址，這樣做安全嗎？", options: ["不安全", "很安全", "無所謂", "非常推薦"], ans: 0 },
+      { q: "轉發別人的相片前，我們應該先？", options: ["徵求對方同意", "修改相片", "加上搞笑文字", "直接轉發"], ans: 0 },
+      { q: "上網時遇到彈出的「中大獎」廣告，通常是什麼？", options: ["網絡詐騙", "政府派錢", "學校獎勵", "真正的運氣"], ans: 0 }
+    ];
 
-            <!-- 題目與作答區 -->
-            <div class="h-[45%] bg-slate-900 border-4 border-blue-700 rounded-2xl p-4 flex flex-col shadow-inner">
-                <div id="p1-question" class="text-2xl lg:text-3xl font-bold text-white mb-4 text-center min-h-[5rem] flex items-center justify-center">
-                    載入題目中...
-                </div>
-                
-                <!-- 選項網格 -->
-                <div class="grid grid-cols-2 gap-3 flex-1 mb-4">
-                    <button id="p1-opt-0" onclick="selectOption(1, 0)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                    <button id="p1-opt-1" onclick="selectOption(1, 1)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                    <button id="p1-opt-2" onclick="selectOption(1, 2)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                    <button id="p1-opt-3" onclick="selectOption(1, 3)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                </div>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let isMuted = false;
+    
+    function playTone(freq, type, duration, vol=0.1) {
+      if (isMuted || audioCtx.state === 'suspended') return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+    
+    const sounds = {
+      correct: () => { playTone(600, 'sine', 0.1); setTimeout(() => playTone(800, 'sine', 0.2), 100); },
+      wrong: () => { playTone(300, 'sawtooth', 0.3, 0.2); setTimeout(() => playTone(250, 'sawtooth', 0.4, 0.2), 150); },
+      attack: () => { playTone(150, 'square', 0.2, 0.3); },
+      heal: () => { playTone(400, 'sine', 0.1); setTimeout(() => playTone(600, 'sine', 0.1), 100); setTimeout(() => playTone(900, 'sine', 0.3), 200); },
+      win: () => { [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => playTone(f, 'square', 0.3, 0.1), i * 150)); }
+    };
 
-                <!-- 確認/取消按鈕 -->
-                <div class="flex justify-between gap-4 h-16">
-                    <button onclick="cancelOption(1)" class="btn-rpg flex-1 bg-red-700 border-2 border-red-900 rounded-xl text-2xl font-bold hover:bg-red-600">❌ 取消</button>
-                    <button onclick="confirmOption(1)" class="btn-rpg flex-1 bg-green-600 border-2 border-green-800 rounded-xl text-2xl font-bold hover:bg-green-500">✅ 確定</button>
-                </div>
-            </div>
-            
-            <!-- 死亡遮罩 -->
-            <div id="p1-dead-overlay" class="absolute inset-0 bg-red-900/80 rounded-3xl z-30 hidden flex-col items-center justify-center">
-                <div class="text-6xl mb-4">☠️</div>
-                <div class="text-4xl font-bold text-white mb-2">騎士倒下了！</div>
-                <div class="text-2xl text-yellow-300">扣除 50 分，3秒後復活...</div>
-            </div>
-        </div>
+    let player = { name: "", char: "", hp: 100, maxHp: 100 };
+    let monster = { hp: 100, maxHp: 100, count: 0 };
+    let state = { score: 0, combo: 0, questionIndex: 0, correctCount: 0, wrongCount: 0, selectedOption: null, questions: [] };
+    let timer = { start: 0, totalSeconds: 0 };
 
-        <!-- ================= 玩家 2 (右側) ================= -->
-        <div id="p2-area" class="w-1/2 flex flex-col bg-slate-800/80 border-4 border-purple-900 rounded-3xl p-4 relative shadow-[0_0_30px_rgba(88,28,135,0.5)]">
-            <!-- 狀態列 -->
-            <div class="flex justify-between items-center mb-2 border-b-2 border-purple-800 pb-2">
-                <div id="p2-combo-display" class="text-xl font-bold text-slate-400">Combo: 0</div>
-                <div class="text-xl font-bold">分數: <span id="p2-score" class="text-yellow-400 text-3xl">0</span></div>
-                <div class="text-2xl font-bold text-purple-300">🔮 P2 法師</div>
-            </div>
+    const charEmojis = { knight: "🤺", mage: "🧙‍♂️", princess: "👸" };
+    const monstersList = ["🐉", "👹", "👽", "👾", "🧟"];
 
-            <!-- 戰鬥區 -->
-            <div class="flex-1 flex flex-col justify-center items-center relative py-4">
-                <!-- 怪獸 -->
-                <div class="flex flex-col items-center mb-8">
-                    <div id="p2-monster-sprite" class="text-8xl filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transition-transform">🐉</div>
-                    <div class="w-48 h-6 bg-slate-900 border-2 border-slate-700 rounded-full mt-4 overflow-hidden relative">
-                        <div id="p2-monster-hp-bar" class="h-full bg-red-500 hp-bar w-full"></div>
-                        <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">怪獸 HP</div>
-                    </div>
-                </div>
-                <!-- 玩家 -->
-                <div class="flex flex-col items-center">
-                    <div class="w-64 h-8 bg-slate-900 border-2 border-slate-700 rounded-full mb-4 overflow-hidden relative">
-                        <div id="p2-hp-bar" class="h-full bg-green-500 hp-bar w-full"></div>
-                        <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">法師 HP <span id="p2-hp-text" class="ml-2">100/100</span></div>
-                    </div>
-                    <div id="p2-sprite" class="text-7xl filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] transition-transform">🧙‍♂️</div>
-                </div>
-                 <!-- 特效容器 -->
-                 <div id="p2-effect-container" class="absolute inset-0 pointer-events-none flex justify-center items-center"></div>
-            </div>
+    const screens = { start: document.getElementById('start-screen'), game: document.getElementById('game-screen'), end: document.getElementById('end-screen') };
+    const ui = {
+      nameInput: document.getElementById('player-name'),
+      charSelects: document.querySelectorAll('.char-select'),
+      btnStart: document.getElementById('btn-start'),
+      btnFullscreen: document.getElementById('btn-fullscreen'),
+      btnMute: document.getElementById('btn-mute'),
+      btnConfirm: document.getElementById('btn-confirm'),
+      btnCancel: document.getElementById('btn-cancel'),
+      btnRestart: document.getElementById('btn-restart'),
+      options: document.querySelectorAll('.option-btn'),
+      qText: document.getElementById('question-text'),
+      pHpBar: document.getElementById('player-hp-bar'),
+      pHpText: document.getElementById('player-hp-text'),
+      pSprite: document.getElementById('player-sprite'),
+      pName: document.getElementById('player-name-display'),
+      mHpBar: document.getElementById('monster-hp-bar'),
+      mHpText: document.getElementById('monster-hp-text'),
+      mSprite: document.getElementById('monster-sprite'),
+      score: document.getElementById('score'),
+      combo: document.getElementById('combo')
+    };
 
-            <!-- 題目與作答區 -->
-            <div class="h-[45%] bg-slate-900 border-4 border-purple-700 rounded-2xl p-4 flex flex-col shadow-inner">
-                <div id="p2-question" class="text-2xl lg:text-3xl font-bold text-white mb-4 text-center min-h-[5rem] flex items-center justify-center">
-                    載入題目中...
-                </div>
-                
-                <!-- 選項網格 -->
-                <div class="grid grid-cols-2 gap-3 flex-1 mb-4">
-                    <button id="p2-opt-0" onclick="selectOption(2, 0)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                    <button id="p2-opt-1" onclick="selectOption(2, 1)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                    <button id="p2-opt-2" onclick="selectOption(2, 2)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                    <button id="p2-opt-3" onclick="selectOption(2, 3)" class="option-btn bg-slate-800 border-2 border-slate-600 rounded-xl text-xl lg:text-2xl font-bold hover:bg-slate-700 transition-all"></button>
-                </div>
+    ui.nameInput.addEventListener('input', checkStartConditions);
+    ui.charSelects.forEach(btn => {
+      btn.addEventListener('click', () => {
+        ui.charSelects.forEach(b => b.classList.remove('border-yellow-400', 'bg-gray-700'));
+        btn.classList.add('border-yellow-400', 'bg-gray-700');
+        player.char = btn.dataset.char;
+        checkStartConditions();
+      });
+    });
 
-                <!-- 確認/取消按鈕 -->
-                <div class="flex justify-between gap-4 h-16">
-                    <button onclick="cancelOption(2)" class="btn-rpg flex-1 bg-red-700 border-2 border-red-900 rounded-xl text-2xl font-bold hover:bg-red-600">❌ 取消</button>
-                    <button onclick="confirmOption(2)" class="btn-rpg flex-1 bg-green-600 border-2 border-green-800 rounded-xl text-2xl font-bold hover:bg-green-500">✅ 確定</button>
-                </div>
-            </div>
+    function checkStartConditions() {
+      if(ui.nameInput.value.trim() !== "" && player.char !== "") ui.btnStart.disabled = false;
+      else ui.btnStart.disabled = true;
+    }
 
-             <!-- 死亡遮罩 -->
-             <div id="p2-dead-overlay" class="absolute inset-0 bg-red-900/80 rounded-3xl z-30 hidden flex-col items-center justify-center">
-                <div class="text-6xl mb-4">☠️</div>
-                <div class="text-4xl font-bold text-white mb-2">法師倒下了！</div>
-                <div class="text-2xl text-yellow-300">扣除 50 分，3秒後復活...</div>
-            </div>
-        </div>
-    </div>
+    ui.btnStart.addEventListener('click', initGame);
+    ui.btnRestart.addEventListener('click', () => {
+      screens.end.classList.remove('active-screen');
+      screens.start.classList.add('active-screen');
+    });
 
-    <div id="result-screen" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center z-50 hidden">
-        <h1 class="text-6xl font-black text-yellow-400 mb-8 drop-shadow-lg">遊戲結束！戰績結算</h1>
+    ui.btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.log(err));
+      else document.exitFullscreen();
+    });
+
+    ui.btnMute.addEventListener('click', () => {
+      isMuted = !isMuted;
+      ui.btnMute.textContent = isMuted ? "🔇" : "🔊";
+    });
+
+    function initGame() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      player.name = ui.nameInput.value.trim();
+      ui.pName.textContent = player.name;
+      ui.pSprite.textContent = charEmojis[player.char];
+      
+      player.hp = 100; monster.hp = 100; monster.count = 0;
+      state = { score: 0, combo: 0, questionIndex: 0, correctCount: 0, wrongCount: 0, selectedOption: null, questions: [] };
+      
+      state.questions = JSON.parse(JSON.stringify(allQuestions)).sort(() => Math.random() - 0.5);
+      state.questions.forEach(q => {
+        const correctText = q.options[q.ans];
+        q.options.sort(() => Math.random() - 0.5);
+        q.ans = q.options.indexOf(correctText);
+      });
+
+      timer.start = Date.now();
+      updateUI();
+      loadQuestion();
+      
+      screens.start.classList.remove('active-screen');
+      screens.game.classList.add('active-screen');
+    }
+
+    function loadQuestion() {
+      if (state.questionIndex >= state.questions.length) {
+        endGame(true);
+        return;
+      }
+      const q = state.questions[state.questionIndex];
+      ui.qText.textContent = `第 ${state.questionIndex + 1}/30 題：${q.q}`;
+      
+      state.selectedOption = null;
+      ui.btnConfirm.disabled = true;
+      ui.btnCancel.disabled = true;
+
+      ui.options.forEach((btn, idx) => {
+        btn.textContent = q.options[idx];
+        btn.classList.remove('selected');
+        btn.onclick = () => selectOption(idx);
+      });
+    }
+
+    function selectOption(index) {
+      state.selectedOption = index;
+      ui.options.forEach((btn, idx) => {
+        if(idx === index) btn.classList.add('selected');
+        else btn.classList.remove('selected');
+      });
+      ui.btnConfirm.disabled = false;
+      ui.btnCancel.disabled = false;
+    }
+
+    ui.btnCancel.addEventListener('click', () => {
+      state.selectedOption = null;
+      ui.options.forEach(btn => btn.classList.remove('selected'));
+      ui.btnConfirm.disabled = true;
+      ui.btnCancel.disabled = true;
+    });
+
+    ui.btnConfirm.addEventListener('click', () => {
+      if (state.selectedOption === null) return;
+      checkAnswer();
+    });
+
+    function checkAnswer() {
+      const q = state.questions[state.questionIndex];
+      const isCorrect = (state.selectedOption === q.ans);
+      
+      ui.btnConfirm.disabled = true;
+      ui.options.forEach(b => b.onclick = null);
+
+      if (isCorrect) {
+        state.correctCount++;
+        state.combo++;
+        let dmg = 20 + (state.combo * 5);
+        state.score += 100 * state.combo;
+        monster.hp -= dmg;
         
-        <div class="flex gap-8 w-full max-w-6xl px-8">
-            <!-- P1 結算 -->
-            <div class="flex-1 bg-blue-900/50 border-4 border-blue-500 p-8 rounded-3xl text-center">
-                <h2 class="text-4xl font-bold text-blue-300 mb-6">騎士 🛡️</h2>
-                <div class="text-7xl font-black text-yellow-400 mb-6" id="res-p1-score">0</div>
-                <div class="text-2xl space-y-4 text-slate-200">
-                    <p>答對題數：<span id="res-p1-correct" class="text-green-400 font-bold">0</span></p>
-                    <p>答錯題數：<span id="res-p1-wrong" class="text-red-400 font-bold">0</span></p>
-                    <p>擊敗怪獸：<span id="res-p1-kills" class="text-purple-400 font-bold">0</span></p>
-                </div>
-            </div>
+        sounds.correct();
+        setTimeout(sounds.attack, 200);
+        triggerAnimation(ui.pSprite, 'shake-animation');
+        triggerAnimation(ui.mSprite, 'flash-red-animation');
 
-            <!-- 勝利標誌 -->
-            <div class="flex flex-col justify-center items-center">
-                <div id="winner-text" class="text-6xl font-black text-white bg-red-600 px-8 py-4 rounded-full border-4 border-yellow-400 shadow-2xl transform -rotate-12">
-                    WINNER
-                </div>
-            </div>
+        if (state.combo % 3 === 0) {
+          player.hp = Math.min(player.maxHp, player.hp + 20);
+          setTimeout(sounds.heal, 400);
+          triggerAnimation(ui.pSprite, 'flash-green-animation');
+        }
 
-            <!-- P2 結算 -->
-            <div class="flex-1 bg-purple-900/50 border-4 border-purple-500 p-8 rounded-3xl text-center">
-                <h2 class="text-4xl font-bold text-purple-300 mb-6">法師 🔮</h2>
-                <div class="text-7xl font-black text-yellow-400 mb-6" id="res-p2-score">0</div>
-                <div class="text-2xl space-y-4 text-slate-200">
-                    <p>答對題數：<span id="res-p2-correct" class="text-green-400 font-bold">0</span></p>
-                    <p>答錯題數：<span id="res-p2-wrong" class="text-red-400 font-bold">0</span></p>
-                    <p>擊敗怪獸：<span id="res-p2-kills" class="text-purple-400 font-bold">0</span></p>
-                </div>
-            </div>
-        </div>
-
-        <button onclick="location.reload()" class="mt-12 btn-rpg bg-blue-600 border-4 border-blue-800 text-white text-3xl font-bold py-4 px-12 rounded-2xl hover:bg-blue-500">
-            🔄 重新開始
-        </button>
-    </div>
-
-    <div id="message-box" class="fixed top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-500 text-black px-8 py-4 rounded-full text-2xl font-bold shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-[100]">
-        提示訊息
-    </div>
-
-    <script>
-        const QUESTION_POOL = [
-            // 歷史題 (漢唐宋元明)
-            { q: "漢代開闢了連接中西的貿易通道，稱為甚麼？", options: ["絲綢之路", "茶馬古道", "京杭大運河", "鄭和下西洋"], ans: 0 },
-            { q: "唐代哪位君主開創了「貞觀之治」，令國家繁榮？", options: ["唐太宗", "唐高祖", "唐玄宗", "武則天"], ans: 0 },
-            { q: "宋代發明了甚麼技術，大大促進了知識和文化的傳播？", options: ["活字印刷術", "造紙術", "指南針", "火藥"], ans: 0 },
-            { q: "元代是由中國古代哪個少數民族建立的大一統朝代？", options: ["蒙古族", "滿族", "藏族", "匈奴"], ans: 0 },
-            { q: "明代著名的航海家是誰？他曾七次率領船隊「下西洋」。", options: ["鄭和", "張騫", "玄奘", "戚繼光"], ans: 0 },
-            { q: "中國四大發明中，哪一項是在「漢代」被蔡倫改良的？", options: ["造紙術", "火藥", "指南針", "印刷術"], ans: 0 },
-            { q: "唐代國力鼎盛，當時的首都___是世界上最繁華的國際大都市之一。", options: ["長安", "洛陽", "開封", "北京"], ans: 0 },
-            { q: "宋代商業非常繁榮，出現了世界上最早的紙幣，稱為甚麼？", options: ["交子", "銀票", "銅錢", "元寶"], ans: 0 },
-            { q: "元代版圖極為遼闊，為方便交通和傳遞軍事信息，建立了甚麼制度？", options: ["驛站制度", "科舉制度", "郡縣制度", "行省制度"], ans: 0 },
-            { q: "明代為了防禦北方外族入侵，大規模修築了甚麼偉大建築？", options: ["萬里長城", "故宮", "大運河", "兵馬俑"], ans: 0 },
-            { q: "漢武帝曾派誰出使西域，聯絡大月氏，促進了中外交流？", options: ["張騫", "班超", "蘇武", "司馬遷"], ans: 0 },
-            { q: "中國歷史上唯一的女皇帝是誰？她生活在唐代。", options: ["武則天", "慈禧太后", "王昭君", "楊貴妃"], ans: 0 },
-            { q: "北宋末年，金兵攻破首都，擄走徽、欽二帝，這事件史稱？", options: ["靖康之難", "安史之亂", "八王之亂", "黃巾之亂"], ans: 0 },
-            { q: "明朝的開國皇帝是誰？他出身貧苦，曾出家當和尚。", options: ["朱元璋", "朱棣", "趙匡胤", "劉邦"], ans: 0 },
-            { q: "「四大發明」中的指南針，在哪個朝代開始廣泛應用於航海事業？", options: ["宋代", "漢代", "唐代", "清代"], ans: 0 },
-            
-            // 天文題 (地球、月球、太陽系)
-            { q: "地球繞著自己的地軸旋轉，這種運動稱為甚麼？", options: ["自轉", "公轉", "偏轉", "平移"], ans: 0 },
-            { q: "地球自轉一週大約需要多少時間？", options: ["24小時", "12小時", "30天", "365天"], ans: 0 },
-            { q: "地球的「自轉」造成了甚麼自然現象？", options: ["晝夜交替", "四季變化", "潮汐漲退", "月相盈虧"], ans: 0 },
-            { q: "地球圍繞太陽運行的軌跡運動，稱為甚麼？", options: ["公轉", "自轉", "自旋", "迴旋"], ans: 0 },
-            { q: "地球公轉一週大約需要多少時間？", options: ["一年", "一個月", "一天", "一季"], ans: 0 },
-            { q: "地球的「公轉」和地軸的傾斜，造成了甚麼自然現象？", options: ["四季變化", "晝夜交替", "日食", "地震"], ans: 0 },
-            { q: "月球是地球的甚麼星？它圍繞地球運行。", options: ["衛星", "行星", "恆星", "彗星"], ans: 0 },
-            { q: "月球自己會發光嗎？", options: ["不會，反射太陽光", "會，自己發光", "白天會，晚上不會", "吸收地球的光"], ans: 0 },
-            { q: "月相的變化週期（從新月到下一次新月）大約是多少天？", options: ["約29.5天", "約7天", "約365天", "約24小時"], ans: 0 },
-            { q: "太陽系八大行星中，體積最大的是哪一顆行星？", options: ["木星", "地球", "土星", "火星"], ans: 0 },
-            { q: "太陽系中，距離太陽「最近」的行星是哪一顆？", options: ["水星", "金星", "地球", "火星"], ans: 0 },
-            { q: "太陽系八大行星中，擁有美麗且明顯「光環」的是哪一顆？", options: ["土星", "木星", "天王星", "海王星"], ans: 0 },
-            { q: "我們居住的地球，在太陽系中距離太陽由近至遠排列第幾？", options: ["第三", "第一", "第二", "第四"], ans: 0 },
-            { q: "發生「日食」時，三個天體排列成一線的順序是甚麼？", options: ["太陽—月球—地球", "太陽—地球—月球", "地球—太陽—月球", "月球—太陽—地球"], ans: 0 },
-            { q: "月球表面佈滿了大小不一的坑洞，這些坑洞稱為什麼？", options: ["環形山(隕石坑)", "火山", "峽谷", "盆地"], ans: 0 }
-        ];
-
-        const MONSTER_SPRITES = ['👹', '🐉', '👾', '👽', '👻', '🦖', '🐙', '🦇'];
+      } else {
+        state.wrongCount++;
+        state.combo = 0;
+        player.hp -= 25;
         
-        let gameState = {
-            isPlaying: false,
-            timeRemaining: 300, // 5分鐘 = 300秒
-            timerInterval: null
-        };
+        sounds.wrong();
+        triggerAnimation(ui.mSprite, 'shake-animation');
+        triggerAnimation(ui.pSprite, 'flash-red-animation');
+      }
 
-        class Player {
-            constructor(id, sprite, name) {
-                this.id = id;
-                this.name = name;
-                this.sprite = sprite;
-                this.maxHp = 100;
-                this.hp = 100;
-                this.score = 0;
-                this.combo = 0;
-                this.correct = 0;
-                this.wrong = 0;
-                this.kills = 0;
-                this.isDead = false;
-                
-                this.monsterMaxHp = 100;
-                this.monsterHp = 100;
-                this.monsterSprite = MONSTER_SPRITES[Math.floor(Math.random() * MONSTER_SPRITES.length)];
-                
-                this.currentQuestion = null;
-                this.shuffledOptions = [];
-                this.selectedOptionIndex = null; // 0-3 (UI index)
-            }
+      updateUI();
+
+      setTimeout(() => {
+        if (player.hp <= 0) {
+          endGame(false);
+        } else if (monster.hp <= 0) {
+          monster.count++;
+          monster.hp = monster.maxHp;
+          ui.mSprite.textContent = monstersList[monster.count % monstersList.length];
+          updateUI();
+          state.questionIndex++;
+          loadQuestion();
+        } else {
+          state.questionIndex++;
+          loadQuestion();
         }
+      }, 1000);
+    }
 
-        let player1 = new Player(1, '🤺', '騎士');
-        let player2 = new Player(2, '🧙‍♂️', '法師');
+    function updateUI() {
+      ui.pHpBar.style.width = Math.max(0, (player.hp / player.maxHp) * 100) + '%';
+      ui.pHpText.textContent = `${Math.max(0, player.hp)}/${player.maxHp}`;
+      
+      ui.mHpBar.style.width = Math.max(0, (monster.hp / monster.maxHp) * 100) + '%';
+      ui.mHpText.textContent = `${Math.max(0, Math.floor(monster.hp))}/${monster.maxHp}`;
+      
+      ui.score.textContent = state.score;
+      ui.combo.textContent = state.combo;
+    }
 
-        let audioCtx = null;
-        let isMuted = false;
+    function triggerAnimation(element, className) {
+      element.classList.remove(className);
+      void element.offsetWidth;
+      element.classList.add(className);
+    }
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
+    function endGame(isWin) {
+      timer.totalSeconds = Math.floor((Date.now() - timer.start) / 1000);
+      screens.game.classList.remove('active-screen');
+      screens.end.classList.add('active-screen');
+      
+      if (isWin || player.hp > 0) {
+        document.getElementById('end-title').textContent = "戰鬥勝利！知識就是力量！";
+        document.getElementById('end-title').classList.replace('text-red-500', 'text-yellow-400');
+        sounds.win();
+      } else {
+        document.getElementById('end-title').textContent = "英雄倒下，請再接再厲！";
+        document.getElementById('end-title').classList.replace('text-yellow-400', 'text-red-500');
+      }
 
-        function playSound(type) {
-            if (isMuted || !audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+      const mins = Math.floor(timer.totalSeconds / 60);
+      const secs = timer.totalSeconds % 60;
 
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+      document.getElementById('stat-name').textContent = player.name;
+      document.getElementById('stat-score').textContent = state.score;
+      document.getElementById('stat-correct').textContent = state.correctCount;
+      document.getElementById('stat-wrong').textContent = state.wrongCount;
+      document.getElementById('stat-monsters').textContent = monster.count;
+      document.getElementById('stat-time').textContent = `${mins}分${secs}秒`;
 
-            const now = audioCtx.currentTime;
-
-            if (type === 'correct') {
-                // 叮咚聲
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            } 
-            else if (type === 'wrong') {
-                // 吧聲 (低頻方波)
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
-            else if (type === 'attack') {
-                // 攻擊聲 (短促鋸齒波)
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
-                gainNode.gain.setValueAtTime(0.4, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now);
-                osc.stop(now + 0.15);
-            }
-            else if (type === 'heal') {
-                // 補血聲 (上升音階)
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.linearRampToValueAtTime(800, now + 0.2);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                osc.start(now);
-                osc.stop(now + 0.4);
-            }
-            else if (type === 'monsterDead') {
-                // 怪獸死亡
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.exponentialRampToValueAtTime(20, now + 0.4);
-                gainNode.gain.setValueAtTime(0.5, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.5);
-                osc.start(now);
-                osc.stop(now + 0.5);
-            }
-            else if (type === 'win') {
-                // 勝利琶音
-                osc.type = 'triangle';
-                const freqs = [440, 554, 659, 880];
-                let startTime = now;
-                freqs.forEach((freq, i) => {
-                    osc.frequency.setValueAtTime(freq, startTime);
-                    startTime += 0.15;
-                });
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.6);
-                osc.start(now);
-                osc.stop(now + 0.6);
-            }
-        }
-
-        function toggleMute() {
-            isMuted = !isMuted;
-            document.getElementById('mute-btn').innerHTML = isMuted ? '🔇 音效: 關' : '🔊 音效: 開';
-        }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    showMessage(`無法進入全螢幕: ${err.message}`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        }
-
-        function showMessage(text) {
-            const msgBox = document.getElementById('message-box');
-            msgBox.innerText = text;
-            msgBox.classList.remove('opacity-0');
-            setTimeout(() => {
-                msgBox.classList.add('opacity-0');
-            }, 1500);
-        }
-
-        function getPlayerObj(pid) {
-            return pid === 1 ? player1 : player2;
-        }
-
-        function loadQuestion(pid) {
-            const p = getPlayerObj(pid);
-            // 隨機抽一題
-            const qObj = QUESTION_POOL[Math.floor(Math.random() * QUESTION_POOL.length)];
-            p.currentQuestion = qObj;
-            
-            // 打亂選項並紀錄正確答案的新位置
-            let optionsWithIndex = qObj.options.map((opt, idx) => ({ text: opt, isCorrect: idx === qObj.ans }));
-            // Fisher-Yates shuffle
-            for (let i = optionsWithIndex.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
-            }
-            
-            p.shuffledOptions = optionsWithIndex;
-            p.selectedOptionIndex = null;
-
-            // 更新 UI
-            document.getElementById(`p${pid}-question`).innerText = qObj.q;
-            for (let i = 0; i < 4; i++) {
-                const btn = document.getElementById(`p${pid}-opt-${i}`);
-                btn.innerText = optionsWithIndex[i].text;
-                btn.classList.remove('option-selected');
-            }
-        }
-
-        function updatePlayerUI(pid) {
-            const p = getPlayerObj(pid);
-            
-            // 分數與 Combo
-            document.getElementById(`p${pid}-score`).innerText = p.score;
-            const comboEl = document.getElementById(`p${pid}-combo-display`);
-            comboEl.innerText = `Combo: ${p.combo}`;
-            if (p.combo >= 3) {
-                comboEl.classList.add('combo-glow');
-            } else {
-                comboEl.classList.remove('combo-glow');
-            }
-
-            // 玩家 HP
-            const hpPercent = Math.max(0, (p.hp / p.maxHp) * 100);
-            const hpBar = document.getElementById(`p${pid}-hp-bar`);
-            hpBar.style.width = `${hpPercent}%`;
-            hpBar.style.backgroundColor = hpPercent > 50 ? '#22c55e' : (hpPercent > 20 ? '#eab308' : '#ef4444');
-            document.getElementById(`p${pid}-hp-text`).innerText = `${p.hp}/${p.maxHp}`;
-
-            // 怪獸 HP & Sprite
-            document.getElementById(`p${pid}-monster-sprite`).innerText = p.monsterSprite;
-            const mHpPercent = Math.max(0, (p.monsterHp / p.monsterMaxHp) * 100);
-            document.getElementById(`p${pid}-monster-hp-bar`).style.width = `${mHpPercent}%`;
-
-            // 死亡狀態
-            const deadOverlay = document.getElementById(`p${pid}-dead-overlay`);
-            if (p.isDead) {
-                deadOverlay.classList.remove('hidden');
-                deadOverlay.classList.add('flex');
-            } else {
-                deadOverlay.classList.add('hidden');
-                deadOverlay.classList.remove('flex');
-            }
-        }
-
-        function selectOption(pid, optIndex) {
-            const p = getPlayerObj(pid);
-            if (p.isDead || !gameState.isPlaying) return;
-
-            p.selectedOptionIndex = optIndex;
-            
-            // 更新 UI 發光狀態
-            for (let i = 0; i < 4; i++) {
-                const btn = document.getElementById(`p${pid}-opt-${i}`);
-                if (i === optIndex) {
-                    btn.classList.add('option-selected');
-                } else {
-                    btn.classList.remove('option-selected');
-                }
-            }
-        }
-
-        function cancelOption(pid) {
-            const p = getPlayerObj(pid);
-            if (p.isDead || !gameState.isPlaying) return;
-
-            p.selectedOptionIndex = null;
-            for (let i = 0; i < 4; i++) {
-                document.getElementById(`p${pid}-opt-${i}`).classList.remove('option-selected');
-            }
-        }
-
-        function showFloatingText(pid, text, type, isPlayer) {
-            const container = document.getElementById(`p${pid}-effect-container`);
-            const el = document.createElement('div');
-            el.innerText = text;
-            el.className = type === 'damage' ? 'damage-text' : 'heal-text';
-            // 位置微調
-            if (isPlayer) el.style.bottom = '20%';
-            else el.style.top = '20%';
-            
-            container.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
-        }
-
-        function handlePlayerDeath(pid) {
-            const p = getPlayerObj(pid);
-            p.isDead = true;
-            p.score = Math.max(0, p.score - 50); // 扣 50 分
-            p.combo = 0;
-            playSound('wrong');
-            updatePlayerUI(pid);
-            
-            // 3秒後復活
-            setTimeout(() => {
-                if (!gameState.isPlaying) return;
-                p.hp = p.maxHp;
-                p.isDead = false;
-                updatePlayerUI(pid);
-            }, 3000);
-        }
-
-        function confirmOption(pid) {
-            const p = getPlayerObj(pid);
-            if (p.isDead || !gameState.isPlaying) return;
-
-            if (p.selectedOptionIndex === null) {
-                showMessage(`P${pid} 請先選擇一個答案！`);
-                return;
-            }
-
-            const selectedOpt = p.shuffledOptions[p.selectedOptionIndex];
-            
-            if (selectedOpt.isCorrect) {
-                // 答對邏輯
-                p.correct++;
-                p.combo++;
-                p.score += 10 + (p.combo * 5); // 基礎10分，combo加分
-                playSound('correct');
-
-                let damage = 25 + Math.floor(Math.random() * 10);
-                
-                // Combo 獎勵
-                if (p.combo >= 3) {
-                    damage += 20; // 增傷
-                    const heal = 15;
-                    p.hp = Math.min(p.maxHp, p.hp + heal);
-                    showFloatingText(pid, `+${heal} HP`, 'heal', true);
-                    playSound('heal');
-                }
-
-                // 播放攻擊動畫
-                const pSprite = document.getElementById(`p${pid}-sprite`);
-                pSprite.classList.add(pid === 1 ? 'attack-p1-animation' : 'attack-p2-animation');
-                setTimeout(() => pSprite.classList.remove(pid === 1 ? 'attack-p1-animation' : 'attack-p2-animation'), 300);
-
-                setTimeout(() => playSound('attack'), 150);
-
-                // 怪獸扣血
-                p.monsterHp -= damage;
-                showFloatingText(pid, `-${damage}`, 'damage', false);
-                
-                const mSprite = document.getElementById(`p${pid}-monster-sprite`);
-                mSprite.classList.add('monster-hurt-animation');
-                setTimeout(() => mSprite.classList.remove('monster-hurt-animation'), 400);
-
-                if (p.monsterHp <= 0) {
-                    // 怪獸死亡
-                    p.kills++;
-                    p.score += 50; // 擊殺獎勵
-                    playSound('monsterDead');
-                    p.monsterHp = p.monsterMaxHp;
-                    p.monsterSprite = MONSTER_SPRITES[Math.floor(Math.random() * MONSTER_SPRITES.length)];
-                }
-
-            } else {
-                // 答錯邏輯
-                p.wrong++;
-                p.combo = 0;
-                playSound('wrong');
-
-                const damage = 15 + Math.floor(Math.random() * 10);
-                p.hp -= damage;
-                showFloatingText(pid, `-${damage}`, 'damage', true);
-
-                // 玩家受傷特效
-                const pArea = document.getElementById(`p${pid}-area`);
-                pArea.classList.add('shake-animation');
-                setTimeout(() => pArea.classList.remove('shake-animation'), 300);
-
-                if (p.hp <= 0) {
-                    p.hp = 0;
-                    handlePlayerDeath(pid);
-                }
-            }
-
-            updatePlayerUI(pid);
-            if (!p.isDead) {
-                loadQuestion(pid); // 載入下一題
-            }
-        }
-
-        function formatTime(seconds) {
-            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-            const s = (seconds % 60).toString().padStart(2, '0');
-            return `${m}:${s}`;
-        }
-
-        function startGame() {
-            initAudio();
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('top-bar').classList.remove('hidden');
-
-            // 初始化玩家狀態
-            [1, 2].forEach(pid => {
-                const p = getPlayerObj(pid);
-                p.hp = p.maxHp;
-                p.monsterHp = p.monsterMaxHp;
-                p.score = 0;
-                p.combo = 0;
-                p.kills = 0;
-                p.correct = 0;
-                p.wrong = 0;
-                p.isDead = false;
-                loadQuestion(pid);
-                updatePlayerUI(pid);
-            });
-
-            gameState.isPlaying = true;
-            gameState.timeRemaining = 300; // 5 mins
-            document.getElementById('timer-display').innerText = formatTime(gameState.timeRemaining);
-
-            gameState.timerInterval = setInterval(() => {
-                gameState.timeRemaining--;
-                document.getElementById('timer-display').innerText = formatTime(gameState.timeRemaining);
-                
-                if (gameState.timeRemaining <= 0) {
-                    endGame();
-                }
-            }, 1000);
-        }
-
-        function endGame() {
-            gameState.isPlaying = false;
-            clearInterval(gameState.timerInterval);
-            playSound('win');
-
-            // 判斷勝負
-            let winnerText = "平手 DRAW";
-            if (player1.score > player2.score) winnerText = "騎士勝 P1 WINS";
-            else if (player2.score > player1.score) winnerText = "法師勝 P2 WINS";
-            document.getElementById('winner-text').innerText = winnerText;
-
-            // 填入結算數據
-            document.getElementById('res-p1-score').innerText = player1.score;
-            document.getElementById('res-p1-correct').innerText = player1.correct;
-            document.getElementById('res-p1-wrong').innerText = player1.wrong;
-            document.getElementById('res-p1-kills').innerText = player1.kills;
-
-            document.getElementById('res-p2-score').innerText = player2.score;
-            document.getElementById('res-p2-correct').innerText = player2.correct;
-            document.getElementById('res-p2-wrong').innerText = player2.wrong;
-            document.getElementById('res-p2-kills').innerText = player2.kills;
-
-            // 顯示畫面
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('top-bar').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-        }
-
-    </script>
+      if (window.uploadGameScore) {
+        window.uploadGameScore(player.name, state.score, state.correctCount, timer.totalSeconds);
+      }
+    }
+  </script>
 </body>
 </html>
